@@ -49,6 +49,19 @@ function fmt(n: number): string {
   return n.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+function fmtDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  return d.toLocaleString("tr-TR", {
+    day: "2-digit", month: "2-digit", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
+}
+
+function fmtTime(dateStr: string): string {
+  const d = new Date(dateStr);
+  return d.toLocaleString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+}
+
 // ─── Ana Dashboard ───────────────────────────────────────────
 export default function Dashboard() {
   const [leaderboard, setLeaderboard] = useState<StrategyEntry[]>([]);
@@ -219,7 +232,7 @@ export default function Dashboard() {
                       <th className="pb-2 font-medium">Adet</th>
                       <th className="pb-2 font-medium">Stop Loss</th>
                       <th className="pb-2 font-medium">Take Profit</th>
-                      <th className="pb-2 font-medium">Tarih</th>
+                      <th className="pb-2 font-medium">Alım Saati</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -230,7 +243,7 @@ export default function Dashboard() {
                         <td className="py-2.5">{p.quantity}</td>
                         <td className="py-2.5 text-[var(--color-danger)]">₺{fmt(p.stopLoss)}</td>
                         <td className="py-2.5 text-[var(--color-success)]">₺{fmt(p.takeProfit)}</td>
-                        <td className="py-2.5 text-[var(--color-text-muted)]">{new Date(p.createdAt).toLocaleDateString("tr-TR")}</td>
+                        <td className="py-2.5 text-[var(--color-text-muted)] text-xs">{fmtDate(p.createdAt)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -355,7 +368,8 @@ export default function Dashboard() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="text-[var(--color-text-muted)] text-left border-b border-[var(--color-border)]">
-                        <th className="pb-2 font-medium">Tarih</th>
+                        <th className="pb-2 font-medium">Alım</th>
+                        <th className="pb-2 font-medium">Satış</th>
                         <th className="pb-2 font-medium">Hisse</th>
                         <th className="pb-2 font-medium">Giriş ₺</th>
                         <th className="pb-2 font-medium">Çıkış ₺</th>
@@ -366,7 +380,8 @@ export default function Dashboard() {
                     <tbody>
                       {selected.closedPositions.map((p) => (
                         <tr key={p.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-hover)] transition-colors">
-                          <td className="py-2.5 text-[var(--color-text-muted)]">{p.exitTimestamp ? new Date(p.exitTimestamp).toLocaleDateString("tr-TR") : "—"}</td>
+                          <td className="py-2.5 text-[var(--color-text-muted)] text-xs">{fmtDate(p.createdAt)}</td>
+                          <td className="py-2.5 text-[var(--color-text-muted)] text-xs">{p.exitTimestamp ? fmtDate(p.exitTimestamp) : "—"}</td>
                           <td className="py-2.5 font-semibold text-[var(--color-accent)]">{p.ticker}</td>
                           <td className="py-2.5">₺{fmt(p.entryPrice)}</td>
                           <td className="py-2.5">{p.exitPrice != null ? `₺${fmt(p.exitPrice)}` : "—"}</td>
