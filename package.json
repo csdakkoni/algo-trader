@@ -1,0 +1,27 @@
+{
+  "name": "algo-trader",
+  "version": "1.0.0",
+  "description": "Algoritmik Trading Yazılımı — Modül 1: Veri Toplayıcı ve Veritabanı Entegrasyonu",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:fetch": "tsx src/scripts/test-fetch.ts",
+    "test:backtest": "tsx src/scripts/test-backtest.ts",
+    "paper:trade": "tsx src/scripts/run-paper-trader.ts",
+    "daemon:start": "tsx src/scripts/daemon-trader.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+dashboard/node_modules/
+
+# npm cache
+.npm-cache/
+dashboard/.npm-cache/
+
+# Environment (hassas bilgiler)
+.env
+.env.local
+dashboard/.env.local
+
+# Build outputs
+dist/
+dashboard/.next/
+dashboard/out/
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
