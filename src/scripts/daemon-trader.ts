@@ -324,21 +324,61 @@ async function runCycle(): Promise<void> {
   }
 }
 
+// ------------------------------------------------------------
+// BORSA SAATİ KONTROLÜ
+// ------------------------------------------------------------
+
+function isBISTOpen(): boolean {
+  const now = new Date();
+  // Türkiye saati (UTC+3)
+  const tr = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
+  const day = tr.getDay(); // 0=Pazar, 6=Cumartesi
+  const hour = tr.getHours();
+  const minute = tr.getMinutes();
+  const timeInMinutes = hour * 60 + minute;
+
+  // Hafta sonu kapalı
+  if (day === 0 || day === 6) return false;
+
+  // 09:30 - 18:00 arası açık
+  const openTime = 9 * 60 + 30;  // 09:30
+  const closeTime = 18 * 60;      // 18:00
+  return timeInMinutes >= openTime && timeInMinutes < closeTime;
+}
+
+function nextOpenTime(): string {
+  const now = new Date();
+  const tr = new Date(now.toLocaleString("en-US", { timeZone: "Europe/Istanbul" }));
+  const day = tr.getDay();
+  const hour = tr.getHours();
+  const minute = tr.getMinutes();
+  const timeInMinutes = hour * 60 + minute;
+
+  if (day >= 1 && day <= 5 && timeInMinutes < 9 * 60 + 30) {
+    return "bugün 09:30'da";
+  }
+  if (day === 5 && timeInMinutes >= 18 * 60) return "Pazartesi 09:30'da";
+  if (day === 6) return "Pazartesi 09:30'da";
+  if (day === 0) return "Pazartesi 09:30'da";
+  return "yarın 09:30'da";
+}
+
 async function main(): Promise<void> {
   console.log("🏁 Daemon Trader v2 — 3'lü Paralel Yarış Motoru");
   console.log("   🐢 Trend Takipçisi (1d) | 🦅 Avcı (1h) | ⚡ Keskin Nişancı (15m)");
-  console.log("   Her mod kendi sanal kasasıyla bağımsız işlem yapar.\n");
+  console.log("   BIST 09:30-18:00 | Hafta içi\n");
 
   // Hesapları oluştur/kontrol et
   await ensureAccounts();
 
-  // İlk çalıştırma
-  await runCycle();
-
-  // Sonsuz döngü — her 15 dk
+  // Sonsuz döngü
   while (true) {
-    console.log(`\n⏳ Sonraki döngü: 15 dk sonra...`);
-    await delay(CYCLE_INTERVAL_MS);
+    if (!isBISTOpen()) {
+      console.log(`\n🔒 Borsa kapalı — açılış ${nextOpenTime()}`);
+      console.log("   💤 5 dk sonra tekrar kontrol...");
+      await delay(5 * 60 * 1000); // 5 dk bekle
+      continue;
+    }
 
     try {
       await runCycle();
@@ -346,6 +386,9 @@ async function main(): Promise<void> {
       console.error(`❌ Döngü hatası: ${err}`);
       await delay(60_000);
     }
+
+    console.log(`\n⏳ Sonraki döngü: 15 dk sonra...`);
+    await delay(CYCLE_INTERVAL_MS);
   }
 }
 
