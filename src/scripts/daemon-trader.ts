@@ -153,7 +153,7 @@ async function scanAndExecute(
   }
 
   const { data: assets } = await supabase
-    .from("assets").select("*").eq("is_active", true).order("ticker");
+    .from("assets").select("*").eq("is_active", true).like("ticker", "%.IS").order("ticker");
 
   if (!assets || assets.length === 0) return;
 

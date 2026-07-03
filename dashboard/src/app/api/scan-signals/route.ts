@@ -90,9 +90,9 @@ export async function GET(request: NextRequest) {
     else if (profile.interval === "1h") daysBack = Math.ceil(profile.lookback / 24) + 2;
     else daysBack = Math.ceil(profile.lookback / 96) + 2;
 
-    // Aktif hisseleri çek
+    // Aktif BIST hisselerini çek (kripto hariç)
     const { data: assets } = await supabase
-      .from("assets").select("id, ticker, name").eq("is_active", true).order("ticker");
+      .from("assets").select("id, ticker, name").eq("is_active", true).like("ticker", "%.IS").order("ticker");
 
     if (!assets || assets.length === 0) {
       return NextResponse.json({ signals: [], activeMode, profile });
