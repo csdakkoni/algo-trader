@@ -18,7 +18,7 @@ const cache = new Map<string, { data: unknown; ts: number }>();
 async function fetchBinanceCandles(
   symbol: string, interval: BinanceInterval, limit: number
 ): Promise<{ date: string; close: number; volume: number; high: number; low: number; open: number }[]> {
-  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
+  const url = `https://data-api.binance.vision/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Binance API: ${res.status} — ${symbol}`);
   const data = await res.json();
