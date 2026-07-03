@@ -43,7 +43,8 @@ interface BacktestResult {
   trades: BacktestTrade[];
 }
 
-type StrategyMode = "TREND" | "AVCI" | "SCALPER";
+type StrategyMode = "TREND" | "AVCI" | "SCALPER" | "CRYPTO_TREND" | "CRYPTO_AVCI" | "CRYPTO_SCALPER";
+type MarketTab = "BIST" | "CRYPTO";
 
 function fmt(n: number): string {
   return n.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -67,6 +68,7 @@ export default function Dashboard() {
   const [leaderboard, setLeaderboard] = useState<StrategyEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMode, setSelectedMode] = useState<StrategyMode>("TREND");
+  const [marketTab, setMarketTab] = useState<MarketTab>("BIST");
 
   // Sinyal state
   const [signals, setSignals] = useState<SignalData[]>([]);
@@ -120,8 +122,20 @@ export default function Dashboard() {
 
   const selected = leaderboard.find((s) => s.mode === selectedMode);
 
-  // Liderlik sıralaması: equity'e göre
-  const sorted = [...leaderboard].sort((a, b) => b.equity - a.equity);
+  // Piyasaya göre filtrele
+  const isCrypto = (mode: string) => mode.startsWith("CRYPTO_");
+  const filteredLeaderboard = leaderboard.filter((s) => 
+    marketTab === "CRYPTO" ? isCrypto(s.mode) : !isCrypto(s.mode)
+  );
+  const sorted = [...filteredLeaderboard].sort((a, b) => b.equity - a.equity);
+  const currencySymbol = marketTab === "CRYPTO" ? "$" : "₺";
+
+  const switchMarket = (tab: MarketTab) => {
+    setMarketTab(tab);
+    const defaultMode = tab === "CRYPTO" ? "CRYPTO_SCALPER" : "TREND";
+    setSelectedMode(defaultMode as StrategyMode);
+    fetchSignals(defaultMode as StrategyMode);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
@@ -131,13 +145,37 @@ export default function Dashboard() {
           <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text-primary)]">
             📊 Algo Trader <span className="text-[var(--color-accent)]">Dashboard</span>
           </h1>
-          <p className="text-sm text-[var(--color-text-muted)] mt-1">3'lü Paralel Strateji Yarışı</p>
+          <p className="text-sm text-[var(--color-text-muted)] mt-1">BIST + Kripto — 6’lı Paralel Strateji</p>
         </div>
         <div className="flex items-center gap-2 text-sm text-[var(--color-success)]">
           <span className="w-2 h-2 rounded-full bg-[var(--color-success)] animate-pulse-glow" />
           Sistem Aktif
         </div>
       </header>
+
+      {/* ═══ PİYASA SEKMESİ ═══ */}
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => switchMarket("BIST")}
+          className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+            marketTab === "BIST"
+              ? "bg-[var(--color-accent)] text-white shadow-[0_0_20px_rgba(59,130,246,0.3)]"
+              : "bg-[var(--color-surface)] text-[var(--color-text-muted)] border border-[var(--color-border)] hover:bg-[var(--color-surface-hover)]"
+          }`}
+        >
+          🇹🇷 BIST 100
+        </button>
+        <button
+          onClick={() => switchMarket("CRYPTO")}
+          className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+            marketTab === "CRYPTO"
+              ? "bg-[var(--color-warning)] text-black shadow-[0_0_20px_rgba(245,158,11,0.3)]"
+              : "bg-[var(--color-surface)] text-[var(--color-text-muted)] border border-[var(--color-border)] hover:bg-[var(--color-surface-hover)]"
+          }`}
+        >
+          🪙 Kripto
+        </button>
+      </div>
 
       {/* ═══ LİDERLİK TABLOSU ═══ */}
       <section className="mb-8 animate-fade-in">
@@ -183,11 +221,11 @@ export default function Dashboard() {
 
                   {/* Özkaynak & K/Z */}
                   <div className="mb-3">
-                    <p className="text-xl font-bold text-[var(--color-text-primary)]">₺{fmt(s.equity)}</p>
+                    <p className="text-xl font-bold text-[var(--color-text-primary)]">{currencySymbol}{fmt(s.equity)}</p>
                     <p className={`text-sm font-semibold ${pnlColor}`}>
                       {s.totalPnlPercent >= 0 ? "+" : ""}{s.totalPnlPercent.toFixed(2)}%
                       <span className="text-xs font-normal text-[var(--color-text-muted)] ml-1.5">
-                        ({s.totalPnl >= 0 ? "+" : ""}₺{fmt(s.totalPnl)})
+                        ({s.totalPnl >= 0 ? "+" : ""}{currencySymbol}{fmt(s.totalPnl)})
                       </span>
                     </p>
                   </div>
