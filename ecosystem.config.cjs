@@ -4,13 +4,14 @@ module.exports = {
   apps: [
     {
       name: "algo-daemon",
-      script: "npx",
-      args: "tsx src/scripts/daemon-trader.ts",
+      script: "./node_modules/.bin/tsx",
+      args: "src/scripts/daemon-trader.ts",
       cwd: __dirname,
+      exec_mode: "fork",
       instances: 1,
       autorestart: true,
-      max_restarts: 50,
-      restart_delay: 5000,
+      max_restarts: 10,
+      restart_delay: 10000,
       watch: false,
       env: {
         NODE_ENV: "production",
