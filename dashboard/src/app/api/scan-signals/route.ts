@@ -8,6 +8,10 @@ const MODE_PROFILES: Record<string, { interval: string; sl: number; tp: number; 
   SCALPER: { interval: "15m", sl: 0.004, tp: 0.012, volMul: 1.2, lookback: 80,  icon: "⚡", name: "Keskin Nişancı" },
 };
 
+// ─── In-Memory Cache (3 dk) ──────────────────────────────────
+const CACHE_TTL_MS = 3 * 60 * 1000;
+const cache = new Map<string, { data: unknown; ts: number }>();
+
 // ─── Yahoo Finance Fetch ─────────────────────────────────────
 async function fetchYahooCandles(
   ticker: string, daysBack: number, interval: string
@@ -72,6 +76,13 @@ export async function GET(request: NextRequest) {
     const modeParam = url.searchParams.get("mode");
     const activeMode = modeParam && MODE_PROFILES[modeParam] ? modeParam : await getActiveMode();
     const profile = MODE_PROFILES[activeMode] ?? MODE_PROFILES["TREND"]!;
+
+    // Cache kontrolü — aynı mod için 3 dk içinde tekrar Yahoo'ya gitme
+    const cacheKey = `signals_${activeMode}`;
+    const cached = cache.get(cacheKey);
+    if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
+      return NextResponse.json(cached.data);
+    }
 
     // Geriye bakış süresi: interval'a göre gün hesapla
     let daysBack: number;
@@ -158,14 +169,19 @@ export async function GET(request: NextRequest) {
           signal: "ERROR" as const, error: err instanceof Error ? err.message : "Bilinmeyen hata",
         });
       }
-      await new Promise((r) => setTimeout(r, 500));
+      await new Promise((r) => setTimeout(r, 200));
     }
 
-    return NextResponse.json({
+    const result = {
       signals, activeMode,
       profile: { icon: profile.icon, name: profile.name, interval: profile.interval, sl: profile.sl, tp: profile.tp, volMul: profile.volMul },
       scannedAt: new Date().toISOString(),
-    });
+    };
+
+    // Cache'e yaz
+    cache.set(cacheKey, { data: result, ts: Date.now() });
+
+    return NextResponse.json(result);
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : "Hata" }, { status: 500 });
   }

@@ -256,68 +256,86 @@ export default function Dashboard() {
             </div>
 
             {signalLoading && signals.length === 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[1,2].map(i => <div key={i} className="h-48 rounded-xl animate-shimmer" />)}
-              </div>
+              <div className="h-32 rounded-xl animate-shimmer" />
             ) : signals.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {signals.map((s) => (
-                  <div key={s.ticker} className={`rounded-xl border p-5 transition-all ${
-                    s.signal === "BUY"
-                      ? "border-[var(--color-success)] bg-[var(--color-success-bg)] shadow-[0_0_20px_rgba(16,185,129,0.15)]"
-                      : s.signal === "WATCH"
-                        ? "border-[var(--color-warning)]/40 bg-[#F59E0B08]"
-                        : "border-[var(--color-border)] bg-[var(--color-surface)]"
-                  }`}>
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="text-lg font-bold text-[var(--color-text-primary)]">{s.ticker}</h3>
-                        <p className="text-xs text-[var(--color-text-muted)]">{s.name}</p>
-                      </div>
-                      <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${
-                        s.signal === "BUY" ? "bg-[var(--color-success)] text-white"
-                          : s.signal === "WATCH" ? "bg-[var(--color-warning)] text-black"
-                            : "bg-[var(--color-border)] text-[var(--color-text-muted)]"
-                      }`}>
-                        {s.signal === "BUY" ? "🟢 AL" : s.signal === "WATCH" ? "🟡 İZLE" : "⏸️ BEKLE"}
-                      </span>
-                    </div>
-                    {s.currentPrice != null && (
-                      <>
-                        <div className="flex items-baseline gap-3 mb-3">
-                          <span className="text-2xl font-bold text-[var(--color-text-primary)]">₺{fmt(s.currentPrice)}</span>
-                          {s.dailyChange != null && (
-                            <span className={`text-sm font-semibold ${s.dailyChange >= 0 ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"}`}>
-                              {s.dailyChange >= 0 ? "+" : ""}{s.dailyChange.toFixed(2)}%
-                            </span>
-                          )}
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 text-xs mb-3">
-                          <div className="flex justify-between rounded-lg bg-[var(--color-background)] px-3 py-2">
-                            <span className="text-[var(--color-text-muted)]">EMA(20)</span>
-                            <span className={s.priceAboveEMA ? "text-[var(--color-success)] font-semibold" : "text-[var(--color-danger)]"}>₺{s.ema20?.toFixed(2)} {s.priceAboveEMA ? "✓" : "✗"}</span>
-                          </div>
-                          <div className="flex justify-between rounded-lg bg-[var(--color-background)] px-3 py-2">
-                            <span className="text-[var(--color-text-muted)]">Hacim / ×{s.volumeThreshold}</span>
-                            <span className={s.volumeAboveSMA ? "text-[var(--color-success)] font-semibold" : "text-[var(--color-text-secondary)]"}>×{s.volumeRatio} {s.volumeAboveSMA ? "🔥" : ""}</span>
-                          </div>
-                        </div>
-                        <p className="text-xs text-[var(--color-text-secondary)] mb-3">{s.signalText}</p>
-                        {s.signal === "BUY" && s.suggestedSL && s.suggestedTP && (
-                          <div className="rounded-lg border border-[var(--color-success)]/30 bg-[var(--color-background)] p-3">
-                            <p className="text-xs font-semibold text-[var(--color-success)] mb-2">💡 Önerilen Senaryo</p>
-                            <div className="grid grid-cols-3 gap-2 text-xs text-center">
-                              <div><p className="text-[var(--color-text-muted)]">Giriş</p><p className="font-bold text-[var(--color-text-primary)]">₺{fmt(s.suggestedEntry!)}</p></div>
-                              <div><p className="text-[var(--color-text-muted)]">Stop Loss</p><p className="font-bold text-[var(--color-danger)]">₺{fmt(s.suggestedSL)}</p></div>
-                              <div><p className="text-[var(--color-text-muted)]">Take Profit</p><p className="font-bold text-[var(--color-success)]">₺{fmt(s.suggestedTP)}</p></div>
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    )}
-                    {s.error && <p className="text-xs text-[var(--color-danger)]">{s.error}</p>}
-                  </div>
-                ))}
+              <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-[var(--color-text-muted)] text-left border-b border-[var(--color-border)] text-xs uppercase">
+                      <th className="px-4 py-3 font-medium">Sinyal</th>
+                      <th className="px-4 py-3 font-medium">Hisse</th>
+                      <th className="px-4 py-3 font-medium text-right">Fiyat</th>
+                      <th className="px-4 py-3 font-medium text-right">Değişim</th>
+                      <th className="px-4 py-3 font-medium text-right">EMA(20)</th>
+                      <th className="px-4 py-3 font-medium text-center">EMA</th>
+                      <th className="px-4 py-3 font-medium text-right">Hacim</th>
+                      <th className="px-4 py-3 font-medium text-center">Vol</th>
+                      <th className="px-4 py-3 font-medium text-right">SL</th>
+                      <th className="px-4 py-3 font-medium text-right">TP</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...signals]
+                      .sort((a, b) => {
+                        const order: Record<string, number> = { BUY: 0, WATCH: 1, NEUTRAL: 2, NO_DATA: 3, ERROR: 4 };
+                        return (order[a.signal] ?? 5) - (order[b.signal] ?? 5);
+                      })
+                      .map((s) => (
+                      <tr
+                        key={s.ticker}
+                        className={`border-b border-[var(--color-border)]/30 transition-colors ${
+                          s.signal === "BUY"
+                            ? "bg-[var(--color-success)]/8 hover:bg-[var(--color-success)]/15"
+                            : "hover:bg-[var(--color-surface-hover)]"
+                        }`}
+                      >
+                        <td className="px-4 py-2.5">
+                          <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
+                            s.signal === "BUY" ? "bg-[var(--color-success)] text-white"
+                              : s.signal === "WATCH" ? "bg-[var(--color-warning)] text-black"
+                                : "bg-[var(--color-border)] text-[var(--color-text-muted)]"
+                          }`}>
+                            {s.signal === "BUY" ? "AL" : s.signal === "WATCH" ? "İZLE" : "BEKLE"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <span className="font-semibold text-[var(--color-text-primary)]">{s.ticker.replace(".IS", "")}</span>
+                          <span className="text-[10px] text-[var(--color-text-muted)] ml-1.5">{s.name}</span>
+                        </td>
+                        <td className="px-4 py-2.5 text-right font-mono font-semibold text-[var(--color-text-primary)]">
+                          {s.currentPrice != null ? `₺${fmt(s.currentPrice)}` : "—"}
+                        </td>
+                        <td className={`px-4 py-2.5 text-right font-mono text-xs font-semibold ${
+                          (s.dailyChange ?? 0) >= 0 ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"
+                        }`}>
+                          {s.dailyChange != null ? `${s.dailyChange >= 0 ? "+" : ""}${s.dailyChange.toFixed(2)}%` : "—"}
+                        </td>
+                        <td className="px-4 py-2.5 text-right font-mono text-xs text-[var(--color-text-secondary)]">
+                          {s.ema20 != null ? `₺${s.ema20.toFixed(2)}` : "—"}
+                        </td>
+                        <td className="px-4 py-2.5 text-center">
+                          <span className={`text-xs ${s.priceAboveEMA ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"}`}>
+                            {s.priceAboveEMA ? "✓" : "✗"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5 text-right font-mono text-xs text-[var(--color-text-secondary)]">
+                          ×{s.volumeRatio ?? "—"}
+                        </td>
+                        <td className="px-4 py-2.5 text-center">
+                          <span className={`text-xs ${s.volumeAboveSMA ? "text-[var(--color-success)]" : "text-[var(--color-text-muted)]"}`}>
+                            {s.volumeAboveSMA ? "🔥" : "—"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5 text-right font-mono text-xs text-[var(--color-danger)]">
+                          {s.suggestedSL != null ? `₺${fmt(s.suggestedSL)}` : "—"}
+                        </td>
+                        <td className="px-4 py-2.5 text-right font-mono text-xs text-[var(--color-success)]">
+                          {s.suggestedTP != null ? `₺${fmt(s.suggestedTP)}` : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             ) : (
               <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-8 text-center text-[var(--color-text-muted)]">
@@ -381,8 +399,13 @@ export default function Dashboard() {
               <label className="block text-xs font-medium text-[var(--color-text-muted)] mb-2 uppercase tracking-wider">Hisse</label>
               <select value={btTicker} onChange={(e) => setBtTicker(e.target.value)}
                 className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-text-primary)] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] cursor-pointer">
-                <option value="THYAO.IS">THYAO.IS — Türk Hava Yolları</option>
-                <option value="EREGL.IS">EREGL.IS — Ereğli Demir Çelik</option>
+                {signals.length > 0 ? (
+                  signals.map((s) => (
+                    <option key={s.ticker} value={s.ticker}>{s.ticker.replace(".IS", "")} — {s.name}</option>
+                  ))
+                ) : (
+                  <option value="THYAO.IS">THYAO — Türk Hava Yolları</option>
+                )}
               </select>
             </div>
             <div>
