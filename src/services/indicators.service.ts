@@ -95,3 +95,60 @@ export function calculateEMA(data: number[], period: number): number[] {
 
   return result;
 }
+
+/**
+ * Göreceli Güç Endeksi (Relative Strength Index - RSI)
+ *
+ * Fiyatın aşırı alım (>70) veya aşırı satım (<30) bölgesinde
+ * olup olmadığını gösterir. Wilder'ın orijinal formülünü kullanır.
+ *
+ * RSI = 100 - (100 / (1 + RS))
+ * RS  = Ortalama Kazanç / Ortalama Kayıp
+ *
+ * @param data - Kapanış fiyatları dizisi
+ * @param period - RSI periyodu (genellikle 14)
+ * @returns RSI değerleri dizisi (0-100 arası)
+ *
+ * @example
+ * ```ts
+ * const rsi = calculateRSI(closes, 14);
+ * if (rsi[rsi.length - 1] > 70) console.log("Aşırı alım!");
+ * ```
+ */
+export function calculateRSI(data: number[], period: number = 14): number[] {
+  if (data.length < period + 1) return [];
+
+  const result: number[] = [];
+
+  // İlk ortalama kazanç/kayıp hesapla
+  let avgGain = 0;
+  let avgLoss = 0;
+
+  for (let i = 1; i <= period; i++) {
+    const change = data[i]! - data[i - 1]!;
+    if (change > 0) avgGain += change;
+    else avgLoss += Math.abs(change);
+  }
+
+  avgGain /= period;
+  avgLoss /= period;
+
+  // İlk RSI
+  const rs = avgLoss === 0 ? 100 : avgGain / avgLoss;
+  result.push(100 - 100 / (1 + rs));
+
+  // Wilder's smoothing ile devam et
+  for (let i = period + 1; i < data.length; i++) {
+    const change = data[i]! - data[i - 1]!;
+    const gain = change > 0 ? change : 0;
+    const loss = change < 0 ? Math.abs(change) : 0;
+
+    avgGain = (avgGain * (period - 1) + gain) / period;
+    avgLoss = (avgLoss * (period - 1) + loss) / period;
+
+    const rsI = avgLoss === 0 ? 100 : avgGain / avgLoss;
+    result.push(100 - 100 / (1 + rsI));
+  }
+
+  return result;
+}

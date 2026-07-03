@@ -12,7 +12,7 @@
 
 import { supabase } from "../config/supabase.js";
 import { fetchCandles } from "../services/yahoo-finance.service.js";
-import { calculateEMA, calculateSMA } from "../services/indicators.service.js";
+import { calculateEMA, calculateSMA, calculateRSI } from "../services/indicators.service.js";
 import {
   getAllProfiles,
   type StrategyProfile,
@@ -188,7 +188,7 @@ async function scanAndExecute(
         const currentBalance = freshAccount?.balance ?? 0;
         if (currentBalance < 1000) break;
 
-        console.log(`  ${profile.icon} 🚀 AL SİNYALİ: ${asset.ticker} @ ₺${signal.price.toFixed(2)}`);
+        console.log(`  ${profile.icon} 🚀 AL SİNYALİ: ${asset.ticker} @ ₺${signal.price.toFixed(2)} | RSI: ${signal.rsi.toFixed(1)}`);
         await openPosition(accountId, asset, signal.price, currentBalance, profile);
         openedCount++;
         continue; // Birden fazla pozisyon açabilir
@@ -205,7 +205,7 @@ async function scanAndExecute(
 async function checkSignal(
   asset: Asset,
   profile: StrategyProfile
-): Promise<{ price: number } | null> {
+): Promise<{ price: number; rsi: number } | null> {
   const period1 = new Date();
   if (profile.interval === "1d") period1.setDate(period1.getDate() - profile.lookbackCandles);
   else if (profile.interval === "1h") period1.setHours(period1.getHours() - profile.lookbackCandles);
@@ -222,6 +222,7 @@ async function checkSignal(
   const volumes = candles.map((c) => c.volume);
   const emaVals = calculateEMA(closes, profile.indicatorPeriod);
   const smaVols = calculateSMA(volumes, profile.indicatorPeriod);
+  const rsiVals = calculateRSI(closes, 14);
 
   if (emaVals.length === 0 || smaVols.length === 0) return null;
 
@@ -229,9 +230,13 @@ async function checkSignal(
   const lastVolume = volumes[volumes.length - 1]!;
   const lastEMA = emaVals[emaVals.length - 1]!;
   const lastVolSMA = smaVols[smaVols.length - 1]!;
+  const lastRSI = rsiVals.length > 0 ? rsiVals[rsiVals.length - 1]! : 50;
+
+  // RSI > 70 → Aşırı alım bölgesi, alma!
+  if (lastRSI > 70) return null;
 
   if (lastClose > lastEMA && lastVolume > profile.volumeMultiplier * lastVolSMA) {
-    return { price: lastClose };
+    return { price: lastClose, rsi: lastRSI };
   }
   return null;
 }
