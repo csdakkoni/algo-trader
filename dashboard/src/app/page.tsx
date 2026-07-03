@@ -47,6 +47,13 @@ type StrategyMode = "TREND" | "AVCI" | "SCALPER" | "CRYPTO_TREND" | "CRYPTO_AVCI
 type MarketTab = "BIST" | "CRYPTO";
 
 function fmt(n: number): string {
+  // Küçük fiyatlar için otomatik ondalık ayarı (SHIB, DOGE vs.)
+  const abs = Math.abs(n);
+  if (abs > 0 && abs < 0.01) {
+    // Kaç sıfır var bul, o kadar + 2 ondalık göster
+    const decimals = Math.max(2, -Math.floor(Math.log10(abs)) + 2);
+    return n.toLocaleString("tr-TR", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  }
   return n.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
