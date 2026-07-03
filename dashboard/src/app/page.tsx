@@ -286,23 +286,26 @@ export default function Dashboard() {
                     <tr className="text-[var(--color-text-muted)] text-left border-b border-[var(--color-border)]">
                       <th className="pb-2 font-medium">{marketTab === "CRYPTO" ? "Coin" : "Hisse"}</th>
                       <th className="pb-2 font-medium">Giriş {currencySymbol}</th>
-                      <th className="pb-2 font-medium">Adet</th>
+                      <th className="pb-2 font-medium">Yatırılan</th>
                       <th className="pb-2 font-medium">Stop Loss</th>
                       <th className="pb-2 font-medium">Take Profit</th>
                       <th className="pb-2 font-medium">Alım Saati</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {selected.openPositions.map((p) => (
+                    {selected.openPositions.map((p) => {
+                      const invested = p.entryPrice * p.quantity;
+                      return (
                       <tr key={p.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-hover)] transition-colors">
-                        <td className="py-2.5 font-semibold text-[var(--color-accent)]">{p.ticker}</td>
+                        <td className="py-2.5 font-semibold text-[var(--color-accent)]">{p.ticker.replace(".IS", "").replace("USDT", "")}</td>
                         <td className="py-2.5">{currencySymbol}{fmt(p.entryPrice)}</td>
-                        <td className="py-2.5">{p.quantity}</td>
+                        <td className="py-2.5 text-[var(--color-text-secondary)]">{currencySymbol}{fmt(invested)}</td>
                         <td className="py-2.5 text-[var(--color-danger)]">{currencySymbol}{fmt(p.stopLoss)}</td>
                         <td className="py-2.5 text-[var(--color-success)]">{currencySymbol}{fmt(p.takeProfit)}</td>
                         <td className="py-2.5 text-[var(--color-text-muted)] text-xs">{fmtDate(p.createdAt)}</td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -430,24 +433,32 @@ export default function Dashboard() {
                         <th className="pb-2 font-medium">{marketTab === "CRYPTO" ? "Coin" : "Hisse"}</th>
                         <th className="pb-2 font-medium">Giriş {currencySymbol}</th>
                         <th className="pb-2 font-medium">Çıkış {currencySymbol}</th>
-                        <th className="pb-2 font-medium">Adet</th>
+                        <th className="pb-2 font-medium">Yatırılan</th>
                         <th className="pb-2 font-medium">K/Z {currencySymbol}</th>
+                        <th className="pb-2 font-medium">K/Z %</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {selected.closedPositions.map((p) => (
+                      {selected.closedPositions.map((p) => {
+                        const invested = p.entryPrice * p.quantity;
+                        const pnlPercent = invested > 0 ? ((p.profitLoss ?? 0) / invested) * 100 : 0;
+                        return (
                         <tr key={p.id} className="border-b border-[var(--color-border)]/50 hover:bg-[var(--color-surface-hover)] transition-colors">
                           <td className="py-2.5 text-[var(--color-text-muted)] text-xs">{fmtDate(p.createdAt)}</td>
                           <td className="py-2.5 text-[var(--color-text-muted)] text-xs">{p.exitTimestamp ? fmtDate(p.exitTimestamp) : "—"}</td>
-                          <td className="py-2.5 font-semibold text-[var(--color-accent)]">{p.ticker}</td>
+                          <td className="py-2.5 font-semibold text-[var(--color-accent)]">{p.ticker.replace(".IS", "").replace("USDT", "")}</td>
                           <td className="py-2.5">{currencySymbol}{fmt(p.entryPrice)}</td>
                           <td className="py-2.5">{p.exitPrice != null ? `${currencySymbol}${fmt(p.exitPrice)}` : "—"}</td>
-                          <td className="py-2.5">{p.quantity}</td>
+                          <td className="py-2.5 text-[var(--color-text-secondary)]">{currencySymbol}{fmt(invested)}</td>
                           <td className={`py-2.5 font-semibold ${(p.profitLoss ?? 0) >= 0 ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"}`}>
                             {p.profitLoss != null ? `${p.profitLoss >= 0 ? "+" : ""}${currencySymbol}${fmt(p.profitLoss)}` : "—"}
                           </td>
+                          <td className={`py-2.5 font-semibold ${pnlPercent >= 0 ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"}`}>
+                            {pnlPercent !== 0 ? `${pnlPercent >= 0 ? "+" : ""}${pnlPercent.toFixed(2)}%` : "—"}
+                          </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
