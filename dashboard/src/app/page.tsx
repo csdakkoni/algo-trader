@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
 // ─── Tipler ──────────────────────────────────────────────────
 interface OpenPosition {
@@ -73,6 +73,7 @@ export default function Dashboard() {
   // Sinyal state
   const [signals, setSignals] = useState<SignalData[]>([]);
   const [signalLoading, setSignalLoading] = useState(false);
+  const signalRequestId = useRef(0); // Yarış durumu önleyici
 
   // Backtest state
   const [btTicker, setBtTicker] = useState("THYAO.IS");
@@ -91,7 +92,9 @@ export default function Dashboard() {
   }, []);
 
   const fetchSignals = useCallback(async (mode: StrategyMode) => {
+    const requestId = ++signalRequestId.current;
     setSignalLoading(true);
+    setSignals([]); // Önceki verileri temizle
     try {
       const isCryptoMode = mode.startsWith("CRYPTO_");
       const apiUrl = isCryptoMode
@@ -99,9 +102,14 @@ export default function Dashboard() {
         : `/api/scan-signals?mode=${mode}`;
       const res = await fetch(apiUrl);
       const data = await res.json();
-      setSignals(data.signals ?? []);
+      // Sadece en son isteğin sonucunu uygula
+      if (requestId === signalRequestId.current) {
+        setSignals(data.signals ?? []);
+      }
     } catch { /* ignore */ }
-    setSignalLoading(false);
+    if (requestId === signalRequestId.current) {
+      setSignalLoading(false);
+    }
   }, []);
 
   useEffect(() => { fetchLeaderboard(); fetchSignals(selectedMode); }, [fetchLeaderboard, fetchSignals, selectedMode]);
