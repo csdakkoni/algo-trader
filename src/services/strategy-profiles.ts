@@ -47,43 +47,52 @@ export interface StrategyProfile {
 // ------------------------------------------------------------
 
 const PROFILES: Record<StrategyMode, StrategyProfile> = {
+  // ── Sabırlı, büyük balık avlar ──────────────────────
+  // Haftada 1-2 işlem, günlerce tutar
+  // Geniş SL ile gürültüyü filtreler, büyük TP ile trendi bitirir
   TREND: {
     mode: "TREND",
     name: "Trend Takipçisi",
     icon: "🐢",
-    description: "Günlük mumlarla swing trading. Dar SL, geniş TP — sabırlı ama kârlı.",
+    description: "Günlük mumlarla swing trading. Sabırlı, güçlü trendleri yakalar.",
     interval: "1d",
-    scanIntervalMs: 60 * 60 * 1000, // 1 saat (günlük mumu her saat kontrol)
+    scanIntervalMs: 60 * 60 * 1000, // 1 saat
     indicatorPeriod: 20,
-    stopLossRatio: 0.005,     // %0.5 — eskiden %2.0
-    takeProfitRatio: 0.10,    // %10  — eskiden %6.0
-    volumeMultiplier: 1.5,    // ×1.5 — eskiden ×2.0
+    stopLossRatio: 0.02,       // %2.0 — geniş, günlük gürültüye dayanır
+    takeProfitRatio: 0.06,     // %6.0 — büyük hareket bekler
+    volumeMultiplier: 1.5,     // ×1.5 — güçlü hacim ister
     lookbackCandles: 40,
   },
+  // ── Aktif, orta dalgaları yakalar ───────────────────
+  // Günde 2-3 işlem, saatlerce tutar
+  // Orta SL/TP, daha sık sinyal, dengeli risk
   AVCI: {
     mode: "AVCI",
     name: "Avcı",
     icon: "🦅",
-    description: "Saatlik mumlarla agresif trading. Dengeli SL/TP, yüksek profit factor.",
+    description: "Saatlik mumlarla aktif trading. Hızlı giriş-çıkış, sık işlem.",
     interval: "1h",
     scanIntervalMs: 60 * 60 * 1000, // 1 saat
     indicatorPeriod: 20,
-    stopLossRatio: 0.008,     // %0.8 — aynı
-    takeProfitRatio: 0.08,    // %8.0 — eskiden %2.5
-    volumeMultiplier: 1.5,    // ×1.5 — aynı
+    stopLossRatio: 0.008,      // %0.8 — dar, hızlı kes
+    takeProfitRatio: 0.025,    // %2.5 — orta hedef
+    volumeMultiplier: 1.2,     // ×1.2 — daha kolay tetiklenir
     lookbackCandles: 60,
   },
+  // ── Makineli tüfek, çok sayıda küçük işlem ─────────
+  // Günde 5-8 işlem, 15 dakikada kapatır
+  // Çok dar SL/TP, düşük hacim eşiği, maksimum aktivite
   SCALPER: {
     mode: "SCALPER",
     name: "Keskin Nişancı",
     icon: "⚡",
-    description: "15 dakikalık mumlarla scalping. Dar SL, geniş TP — patlamaları yakalar.",
+    description: "15dk mumlarla scalping. Çok sık işlem, küçük ama tutarlı kârlar.",
     interval: "15m",
     scanIntervalMs: 15 * 60 * 1000, // 15 dakika
     indicatorPeriod: 20,
-    stopLossRatio: 0.005,     // %0.5 — eskiden %0.4
-    takeProfitRatio: 0.10,    // %10  — eskiden %1.2
-    volumeMultiplier: 1.5,    // ×1.5 — eskiden ×1.2
+    stopLossRatio: 0.004,      // %0.4 — çok dar
+    takeProfitRatio: 0.012,    // %1.2 — küçük hedef, hızlı kapat
+    volumeMultiplier: 1.0,     // ×1.0 — her hacimde tetiklenir
     lookbackCandles: 80,
   },
 };
