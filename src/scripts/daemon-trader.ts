@@ -340,8 +340,8 @@ function isBISTOpen(): boolean {
   // Hafta sonu kapalı
   if (day === 0 || day === 6) return false;
 
-  // 09:30 - 18:00 arası açık
-  const openTime = 9 * 60 + 30;  // 09:30
+  // 10:00 - 18:00 arası açık (sürekli işlem seansı)
+  const openTime = 10 * 60;       // 10:00
   const closeTime = 18 * 60;      // 18:00
   return timeInMinutes >= openTime && timeInMinutes < closeTime;
 }
@@ -354,19 +354,19 @@ function nextOpenTime(): string {
   const minute = tr.getMinutes();
   const timeInMinutes = hour * 60 + minute;
 
-  if (day >= 1 && day <= 5 && timeInMinutes < 9 * 60 + 30) {
-    return "bugün 09:30'da";
+  if (day >= 1 && day <= 5 && timeInMinutes < 10 * 60) {
+    return "bugün 10:00'da";
   }
-  if (day === 5 && timeInMinutes >= 18 * 60) return "Pazartesi 09:30'da";
-  if (day === 6) return "Pazartesi 09:30'da";
-  if (day === 0) return "Pazartesi 09:30'da";
-  return "yarın 09:30'da";
+  if (day === 5 && timeInMinutes >= 18 * 60) return "Pazartesi 10:00'da";
+  if (day === 6) return "Pazartesi 10:00'da";
+  if (day === 0) return "Pazartesi 10:00'da";
+  return "yarın 10:00'da";
 }
 
 async function main(): Promise<void> {
   console.log("🏁 Daemon Trader v2 — 3'lü Paralel Yarış Motoru");
   console.log("   🐢 Trend Takipçisi (1d) | 🦅 Avcı (1h) | ⚡ Keskin Nişancı (15m)");
-  console.log("   BIST 09:30-18:00 | Hafta içi\n");
+  console.log("   BIST 10:00-18:00 | Hafta içi\n");
 
   // Hesapları oluştur/kontrol et
   await ensureAccounts();
