@@ -93,7 +93,11 @@ export default function Dashboard() {
   const fetchSignals = useCallback(async (mode: StrategyMode) => {
     setSignalLoading(true);
     try {
-      const res = await fetch(`/api/scan-signals?mode=${mode}`);
+      const isCryptoMode = mode.startsWith("CRYPTO_");
+      const apiUrl = isCryptoMode
+        ? `/api/crypto-signals?mode=${mode}`
+        : `/api/scan-signals?mode=${mode}`;
+      const res = await fetch(apiUrl);
       const data = await res.json();
       setSignals(data.signals ?? []);
     } catch { /* ignore */ }
@@ -290,8 +294,7 @@ export default function Dashboard() {
             </section>
           )}
 
-          {/* ═══ SİNYAL TARAYICI (Sadece BIST) ═══ */}
-          {marketTab === "BIST" && (
+          {/* ═══ SİNYAL TARAYICI ═══ */}
            <section className="mb-8 animate-fade-in">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-[var(--color-text-secondary)]">
@@ -315,7 +318,7 @@ export default function Dashboard() {
                   <thead>
                     <tr className="text-[var(--color-text-muted)] text-left border-b border-[var(--color-border)] text-xs uppercase">
                       <th className="px-4 py-3 font-medium">Sinyal</th>
-                      <th className="px-4 py-3 font-medium">Hisse</th>
+                      <th className="px-4 py-3 font-medium">{marketTab === "CRYPTO" ? "Coin" : "Hisse"}</th>
                       <th className="px-4 py-3 font-medium text-right">Fiyat</th>
                       <th className="px-4 py-3 font-medium text-right">Değişim</th>
                       <th className="px-4 py-3 font-medium text-right">EMA(20)</th>
@@ -351,11 +354,11 @@ export default function Dashboard() {
                           </span>
                         </td>
                         <td className="px-4 py-2.5">
-                          <span className="font-semibold text-[var(--color-text-primary)]">{s.ticker.replace(".IS", "")}</span>
+                          <span className="font-semibold text-[var(--color-text-primary)]">{s.ticker.replace(".IS", "").replace("USDT", "")}</span>
                           <span className="text-[10px] text-[var(--color-text-muted)] ml-1.5">{s.name}</span>
                         </td>
                         <td className="px-4 py-2.5 text-right font-mono font-semibold text-[var(--color-text-primary)]">
-                          {s.currentPrice != null ? `₺${fmt(s.currentPrice)}` : "—"}
+                          {s.currentPrice != null ? `${currencySymbol}${fmt(s.currentPrice)}` : "—"}
                         </td>
                         <td className={`px-4 py-2.5 text-right font-mono text-xs font-semibold ${
                           (s.dailyChange ?? 0) >= 0 ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"
@@ -363,7 +366,7 @@ export default function Dashboard() {
                           {s.dailyChange != null ? `${s.dailyChange >= 0 ? "+" : ""}${s.dailyChange.toFixed(2)}%` : "—"}
                         </td>
                         <td className="px-4 py-2.5 text-right font-mono text-xs text-[var(--color-text-secondary)]">
-                          {s.ema20 != null ? `₺${s.ema20.toFixed(2)}` : "—"}
+                          {s.ema20 != null ? `${currencySymbol}${s.ema20.toFixed(2)}` : "—"}
                         </td>
                         <td className="px-4 py-2.5 text-center">
                           <span className={`text-xs ${s.priceAboveEMA ? "text-[var(--color-success)]" : "text-[var(--color-danger)]"}`}>
@@ -379,10 +382,10 @@ export default function Dashboard() {
                           </span>
                         </td>
                         <td className="px-4 py-2.5 text-right font-mono text-xs text-[var(--color-danger)]">
-                          {s.suggestedSL != null ? `₺${fmt(s.suggestedSL)}` : "—"}
+                          {s.suggestedSL != null ? `${currencySymbol}${fmt(s.suggestedSL)}` : "—"}
                         </td>
                         <td className="px-4 py-2.5 text-right font-mono text-xs text-[var(--color-success)]">
-                          {s.suggestedTP != null ? `₺${fmt(s.suggestedTP)}` : "—"}
+                          {s.suggestedTP != null ? `${currencySymbol}${fmt(s.suggestedTP)}` : "—"}
                         </td>
                       </tr>
                     ))}
@@ -395,7 +398,6 @@ export default function Dashboard() {
               </div>
             )}
           </section>
-          )}
 
           {/* ═══ İŞLEM GEÇMİŞİ ═══ */}
           <section className="mb-8 animate-fade-in">
