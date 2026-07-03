@@ -51,39 +51,39 @@ const PROFILES: Record<StrategyMode, StrategyProfile> = {
     mode: "TREND",
     name: "Trend Takipçisi",
     icon: "🐢",
-    description: "Günlük mumlarla swing trading. Geniş SL/TP, sabırlı işlemler.",
+    description: "Günlük mumlarla swing trading. Dar SL, geniş TP — sabırlı ama kârlı.",
     interval: "1d",
     scanIntervalMs: 60 * 60 * 1000, // 1 saat (günlük mumu her saat kontrol)
     indicatorPeriod: 20,
-    stopLossRatio: 0.02,
-    takeProfitRatio: 0.06,
-    volumeMultiplier: 2.0,
+    stopLossRatio: 0.005,     // %0.5 — eskiden %2.0
+    takeProfitRatio: 0.10,    // %10  — eskiden %6.0
+    volumeMultiplier: 1.5,    // ×1.5 — eskiden ×2.0
     lookbackCandles: 40,
   },
   AVCI: {
     mode: "AVCI",
     name: "Avcı",
     icon: "🦅",
-    description: "Saatlik mumlarla agresif trading. Orta SL/TP, hızlı giriş-çıkış.",
+    description: "Saatlik mumlarla agresif trading. Dengeli SL/TP, yüksek profit factor.",
     interval: "1h",
     scanIntervalMs: 60 * 60 * 1000, // 1 saat
     indicatorPeriod: 20,
-    stopLossRatio: 0.008,
-    takeProfitRatio: 0.025,
-    volumeMultiplier: 1.5,
+    stopLossRatio: 0.008,     // %0.8 — aynı
+    takeProfitRatio: 0.08,    // %8.0 — eskiden %2.5
+    volumeMultiplier: 1.5,    // ×1.5 — aynı
     lookbackCandles: 60,
   },
   SCALPER: {
     mode: "SCALPER",
     name: "Keskin Nişancı",
     icon: "⚡",
-    description: "15 dakikalık mumlarla scalping. Dar SL/TP, çok sık işlem.",
+    description: "15 dakikalık mumlarla scalping. Dar SL, geniş TP — patlamaları yakalar.",
     interval: "15m",
     scanIntervalMs: 15 * 60 * 1000, // 15 dakika
     indicatorPeriod: 20,
-    stopLossRatio: 0.004,
-    takeProfitRatio: 0.012,
-    volumeMultiplier: 1.2,
+    stopLossRatio: 0.005,     // %0.5 — eskiden %0.4
+    takeProfitRatio: 0.10,    // %10  — eskiden %1.2
+    volumeMultiplier: 1.5,    // ×1.5 — eskiden ×1.2
     lookbackCandles: 80,
   },
 };

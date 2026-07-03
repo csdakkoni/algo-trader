@@ -25,6 +25,8 @@ import type { Asset } from "../types/database.js";
 
 const INITIAL_BALANCE = 100_000;
 const CYCLE_INTERVAL_MS = 15 * 60 * 1000; // 15 dk — en kısa mod
+const MAX_CONCURRENT_POSITIONS = 8;       // Aynı anda max açık pozisyon
+const POSITION_SIZE_RATIO = 0.25;         // Bakiyenin %25'i her işleme
 
 /** Her mod için sanal kasa adı */
 function accountName(profile: StrategyProfile): string {
@@ -145,8 +147,8 @@ async function scanAndExecute(
     .eq("account_id", accountId)
     .eq("status", "OPEN");
 
-  if (count && count > 0) {
-    console.log(`  ${profile.icon} 📌 ${count} açık pozisyon — sinyal atlanıyor`);
+  if (count && count >= MAX_CONCURRENT_POSITIONS) {
+    console.log(`  ${profile.icon} 📌 ${count} açık pozisyon (max ${MAX_CONCURRENT_POSITIONS}) — sinyal atlanıyor`);
     return;
   }
 
@@ -163,14 +165,33 @@ async function scanAndExecute(
     return;
   }
 
+  // Zaten pozisyonu olan hisseleri atla
+  const { data: openPos } = await supabase
+    .from("paper_positions")
+    .select("asset_id")
+    .eq("account_id", accountId)
+    .eq("status", "OPEN");
+  const openAssetIds = new Set((openPos ?? []).map((p) => p.asset_id));
+  let openedCount = 0;
+
   for (const asset of assets) {
+    if (openAssetIds.has(asset.id)) continue; // Aynı hissede zaten pozisyon var
+    if ((count ?? 0) + openedCount >= MAX_CONCURRENT_POSITIONS) break; // Max'a ulaşıldı
+
     try {
       const signal = await checkSignal(asset, profile);
 
       if (signal) {
+        // Güncel bakiyeyi tekrar çek (önceki pozisyonlar düşmüş olabilir)
+        const { data: freshAccount } = await supabase
+          .from("paper_accounts").select("balance").eq("id", accountId).single();
+        const currentBalance = freshAccount?.balance ?? 0;
+        if (currentBalance < 1000) break;
+
         console.log(`  ${profile.icon} 🚀 AL SİNYALİ: ${asset.ticker} @ ₺${signal.price.toFixed(2)}`);
-        await openPosition(accountId, asset, signal.price, account.balance, profile);
-        return; // Bir seferde tek pozisyon
+        await openPosition(accountId, asset, signal.price, currentBalance, profile);
+        openedCount++;
+        continue; // Birden fazla pozisyon açabilir
       }
     } catch (err) {
       console.error(`  ${profile.icon} ❌ ${asset.ticker}: ${err}`);
@@ -218,7 +239,8 @@ async function checkSignal(
 async function openPosition(
   accountId: string, asset: Asset, entryPrice: number, balance: number, profile: StrategyProfile
 ): Promise<void> {
-  const quantity = Math.floor(balance / entryPrice);
+  const allocAmount = balance * POSITION_SIZE_RATIO;
+  const quantity = Math.floor(allocAmount / entryPrice);
   if (quantity <= 0) return;
 
   const cost = quantity * entryPrice;
