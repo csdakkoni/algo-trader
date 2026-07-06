@@ -10,7 +10,7 @@ const MODE_ACCOUNTS: Record<string, { name: string; icon: string; interval: stri
   // Kripto
   CRYPTO_TREND:   { name: "Sanal Kasa - Kripto Trend (4h)",     icon: "🐢", interval: "4h",  sl: 3.0, tp: 8.0,  volMul: 1.5, currency: "USDT" },
   CRYPTO_AVCI:    { name: "Sanal Kasa - Kripto Avcı (1h)",      icon: "🦅", interval: "1h",  sl: 1.5, tp: 4.0,  volMul: 1.3, currency: "USDT" },
-  CRYPTO_SCALPER: { name: "Sanal Kasa - Kripto Scalper (15m)",  icon: "⚡", interval: "15m", sl: 0.5, tp: 1.5,  volMul: 1.0, currency: "USDT" },
+  CRYPTO_SCALPER: { name: "Sanal Kasa - Kripto Scalper (15m)",  icon: "⚡", interval: "15m", sl: 1.0, tp: 3.0,  volMul: 1.0, currency: "USDT" },
 };
 
 const INITIAL_BALANCE = 100_000;

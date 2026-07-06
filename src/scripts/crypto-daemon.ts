@@ -69,8 +69,8 @@ const CRYPTO_PROFILES: CryptoProfile[] = [
     interval: "15m",
     scanIntervalMs: 5 * 60 * 1000,
     indicatorPeriod: 20,
-    stopLossRatio: 0.005,      // %0.5
-    takeProfitRatio: 0.015,    // %1.5
+    stopLossRatio: 0.01,       // %1
+    takeProfitRatio: 0.03,     // %3
     volumeMultiplier: 1.0,
     lookbackCandles: 80,
   },

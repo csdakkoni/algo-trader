@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 const CRYPTO_PROFILES: Record<string, { interval: string; sl: number; tp: number; volMul: number; lookback: number; icon: string; name: string }> = {
   CRYPTO_TREND:   { interval: "4h",  sl: 0.03,  tp: 0.08,  volMul: 1.5, lookback: 50,  icon: "🐢", name: "Kripto Trend" },
   CRYPTO_AVCI:    { interval: "1h",  sl: 0.015, tp: 0.04,  volMul: 1.3, lookback: 60,  icon: "🦅", name: "Kripto Avcı" },
-  CRYPTO_SCALPER: { interval: "15m", sl: 0.005, tp: 0.015, volMul: 1.0, lookback: 80,  icon: "⚡", name: "Kripto Scalper" },
+  CRYPTO_SCALPER: { interval: "15m", sl: 0.01,  tp: 0.03,  volMul: 1.0, lookback: 80,  icon: "⚡", name: "Kripto Scalper" },
 };
 
 type BinanceInterval = "1m" | "3m" | "5m" | "15m" | "1h" | "4h" | "1d";
